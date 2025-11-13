@@ -105,18 +105,20 @@ const NotificationProvider = ({ children }) => {
   return (
     <NotificationContext.Provider value={{ addNotification }}>
       {children}
-      <div className="fixed top-4 right-4 z-50 space-y-2">
+      <div className="fixed top-6 right-6 z-50 space-y-3 max-w-sm">
         {notifications.map(notif => (
           <div
             key={notif.id}
-            className={`p-4 rounded-lg shadow-lg flex items-center gap-3 animate-slide-in ${
-              notif.type === 'success' ? 'bg-green-500' :
-              notif.type === 'error' ? 'bg-red-500' :
-              notif.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
-            } text-white`}
+            className={`p-4 rounded-xl shadow-2xl flex items-start gap-3 backdrop-blur-sm animate-slide-in ${
+              notif.type === 'success' ? 'bg-emerald-500/95' :
+              notif.type === 'error' ? 'bg-rose-500/95' :
+              notif.type === 'warning' ? 'bg-amber-500/95' : 'bg-blue-500/95'
+            } text-white border border-white/20`}
           >
-            <Bell size={20} />
-            <span>{notif.message}</span>
+            {notif.type === 'success' ? <CheckCircle size={20} className="flex-shrink-0 mt-0.5" /> :
+             notif.type === 'error' ? <AlertCircle size={20} className="flex-shrink-0 mt-0.5" /> :
+             <Bell size={20} className="flex-shrink-0 mt-0.5" />}
+            <span className="text-sm font-medium leading-relaxed">{notif.message}</span>
           </div>
         ))}
       </div>
@@ -173,69 +175,90 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
-          </h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X size={24} />
-          </button>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        <div className="bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600 p-8 text-white relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+            <div className="absolute bottom-0 right-0 w-32 h-32 bg-white rounded-full translate-x-1/2 translate-y-1/2"></div>
+          </div>
+          <div className="relative">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-3xl font-bold">
+                {mode === 'login' ? 'Welcome Back!' : 'Join FlashDeal'}
+              </h2>
+              <button onClick={onClose} className="text-white/80 hover:text-white transition-colors">
+                <X size={28} />
+              </button>
+            </div>
+            <p className="text-purple-100">
+              {mode === 'login' ? 'Sign in to continue shopping' : 'Create an account to get started'}
+            </p>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="p-8 space-y-5">
           {mode === 'register' && (
-            <input
-              type="text"
-              placeholder="Full Name"
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+              <input
+                type="text"
+                placeholder="John Doe"
+                required
+                className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
           )}
-          <input
-            type="email"
-            placeholder="Email"
-            required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-          />
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              required
+              className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              required
+              className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            />
+          </div>
           
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-              {error}
+            <div className="p-4 bg-rose-50 border-2 border-rose-200 rounded-xl text-rose-700 text-sm font-medium flex items-start gap-2">
+              <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 transition-all"
           >
-            {loading ? 'Processing...' : mode === 'login' ? 'Login' : 'Register'}
+            {loading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="px-8 pb-8 text-center border-t pt-6">
           <button
             onClick={() => {
               setMode(mode === 'login' ? 'register' : 'login');
               setError('');
             }}
-            className="text-purple-600 hover:text-purple-700 font-medium"
+            className="text-purple-600 hover:text-purple-700 font-semibold text-sm"
           >
-            {mode === 'login' ? "Don't have an account? Register" : 'Already have an account? Login'}
+            {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
           </button>
         </div>
       </div>
@@ -263,11 +286,24 @@ const CountdownTimer = ({ endTime }) => {
   const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
 
   return (
-    <div className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-4 py-2 rounded-full">
-      <Clock size={18} />
-      <span className="font-bold">
-        {hours.toString().padStart(2, '0')}:{minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
-      </span>
+    <div className="inline-flex items-center gap-3 bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 text-white px-6 py-3 rounded-full shadow-lg font-bold">
+      <Clock size={20} className="animate-pulse" />
+      <div className="flex items-center gap-1.5">
+        <div className="flex flex-col items-center">
+          <span className="text-2xl leading-none">{hours.toString().padStart(2, '0')}</span>
+          <span className="text-[10px] opacity-75 uppercase">hrs</span>
+        </div>
+        <span className="text-xl">:</span>
+        <div className="flex flex-col items-center">
+          <span className="text-2xl leading-none">{minutes.toString().padStart(2, '0')}</span>
+          <span className="text-[10px] opacity-75 uppercase">min</span>
+        </div>
+        <span className="text-xl">:</span>
+        <div className="flex flex-col items-center">
+          <span className="text-2xl leading-none">{seconds.toString().padStart(2, '0')}</span>
+          <span className="text-[10px] opacity-75 uppercase">sec</span>
+        </div>
+      </div>
     </div>
   );
 };
@@ -283,43 +319,68 @@ const ProductCard = ({ product, onAddToCart }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all">
-      <div className="relative">
-        <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-6xl">
+    <div className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-gray-100">
+      <div className="relative overflow-hidden">
+        <div className="w-full h-56 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center text-7xl transform group-hover:scale-110 transition-transform duration-500">
           {product.image}
         </div>
+        
+        <div className="absolute top-3 left-3">
+          <div className="bg-emerald-500 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
+            {product.discountPercent}% OFF
+          </div>
+        </div>
+        
         {product.stock < 10 && product.stock > 0 && (
-          <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">
+          <div className="absolute top-3 right-3 bg-rose-500 text-white px-3 py-1.5 rounded-full text-xs font-bold animate-pulse shadow-lg">
             Only {product.stock} left!
           </div>
         )}
         {product.stock === 0 && (
-          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-            <span className="text-white text-xl font-bold">SOLD OUT</span>
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center">
+            <div className="text-white text-center">
+              <AlertCircle size={48} className="mx-auto mb-2" />
+              <span className="text-xl font-bold">SOLD OUT</span>
+            </div>
           </div>
         )}
       </div>
-      <div className="p-4">
-        <h3 className="font-bold text-lg mb-2">{product.name}</h3>
-        <p className="text-gray-600 text-sm mb-3">{product.description}</p>
-        <div className="flex items-center justify-between mb-3">
+      
+      <div className="p-6">
+        <h3 className="font-bold text-xl mb-2 text-gray-900 line-clamp-1">{product.name}</h3>
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">{product.description}</p>
+        
+        <div className="flex items-end justify-between mb-4">
           <div>
-            <div className="text-2xl font-bold text-purple-600">${product.price}</div>
-            <div className="text-sm text-gray-500 line-through">${product.originalPrice}</div>
+            <div className="text-3xl font-bold text-purple-600">${product.price}</div>
+            <div className="text-sm text-gray-400 line-through">${product.originalPrice}</div>
           </div>
-          <div className="text-sm font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">
-            {product.discountPercent}% OFF
+          <div className="text-right">
+            <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Stock</div>
+            <div className={`text-sm font-bold ${product.stock > 10 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              {product.stock} units
+            </div>
           </div>
         </div>
-        <div className="mb-3 text-sm text-gray-600">
-          <span className="font-semibold">Stock:</span> {product.stock} units
-        </div>
+        
         <button
           onClick={handleAddToCart}
           disabled={product.stock === 0 || adding}
-          className="w-full bg-purple-600 text-white py-2 rounded-lg font-semibold hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3.5 rounded-xl font-bold text-base hover:from-purple-700 hover:to-pink-700 hover:shadow-lg hover:-translate-y-0.5 disabled:bg-gray-300 disabled:from-gray-300 disabled:to-gray-300 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all duration-200 flex items-center justify-center gap-2"
         >
-          {adding ? 'Adding...' : product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
+          {adding ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              Adding...
+            </>
+          ) : product.stock === 0 ? (
+            'Sold Out'
+          ) : (
+            <>
+              <CartIcon size={18} />
+              Add to Cart
+            </>
+          )}
         </button>
       </div>
     </div>
@@ -422,48 +483,54 @@ const ShoppingCart = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end justify-end z-50">
-      <div className="bg-white h-full w-full max-w-md shadow-2xl flex flex-col">
-        <div className="p-6 border-b flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Shopping Cart</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X size={24} />
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-end z-50 p-0 sm:p-4">
+      <div className="bg-white h-full sm:h-[90vh] w-full sm:max-w-lg sm:rounded-2xl shadow-2xl flex flex-col">
+        <div className="p-6 border-b bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Shopping Cart</h2>
+            <p className="text-sm text-purple-100 mt-1">{cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}</p>
+          </div>
+          <button onClick={onClose} className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-2 transition-colors">
+            <X size={28} />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
           {cartItems.length === 0 ? (
-            <div className="text-center text-gray-500 mt-12">
-              <CartIcon size={64} className="mx-auto mb-4 opacity-30" />
-              <p>Your cart is empty</p>
+            <div className="text-center text-gray-400 mt-20">
+              <CartIcon size={80} className="mx-auto mb-6 opacity-20" />
+              <p className="text-xl font-semibold">Your cart is empty</p>
+              <p className="text-sm mt-2">Add some products to get started!</p>
             </div>
           ) : (
             <div className="space-y-4">
               {cartItems.map(item => (
-                <div key={item.product._id} className="flex gap-4 border-b pb-4">
-                  <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded flex items-center justify-center text-3xl">
+                <div key={item.product._id} className="flex gap-4 p-4 border-2 border-gray-100 rounded-2xl hover:border-purple-200 transition-colors">
+                  <div className="w-24 h-24 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl flex items-center justify-center text-4xl flex-shrink-0">
                     {item.product.image}
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{item.product.name}</h3>
-                    <p className="text-purple-600 font-bold">${item.price}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <button
-                        onClick={() => updateQuantity(item.product._id, item.quantity - 1)}
-                        className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                      >
-                        -
-                      </button>
-                      <span className="px-3">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.product._id, item.quantity + 1)}
-                        className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
-                      >
-                        +
-                      </button>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-lg text-gray-900 mb-1 truncate">{item.product.name}</h3>
+                    <p className="text-purple-600 font-bold text-xl mb-3">${item.price.toFixed(2)}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+                        <button
+                          onClick={() => updateQuantity(item.product._id, item.quantity - 1)}
+                          className="w-8 h-8 flex items-center justify-center bg-white rounded-lg hover:bg-gray-200 transition-colors font-bold text-gray-700"
+                        >
+                          -
+                        </button>
+                        <span className="px-3 font-bold text-gray-900">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.product._id, item.quantity + 1)}
+                          className="w-8 h-8 flex items-center justify-center bg-white rounded-lg hover:bg-gray-200 transition-colors font-bold text-gray-700"
+                        >
+                          +
+                        </button>
+                      </div>
                       <button
                         onClick={() => removeItem(item.product._id)}
-                        className="ml-auto text-red-500 hover:text-red-700"
+                        className="ml-auto text-rose-500 hover:text-rose-700 font-semibold text-sm"
                       >
                         Remove
                       </button>
@@ -476,17 +543,27 @@ const ShoppingCart = ({ isOpen, onClose }) => {
         </div>
 
         {cartItems.length > 0 && (
-          <div className="p-6 border-t">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-xl font-bold">Total:</span>
-              <span className="text-2xl font-bold text-purple-600">${total.toFixed(2)}</span>
+          <div className="p-6 border-t bg-gray-50">
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-lg font-semibold text-gray-700">Total Amount:</span>
+              <span className="text-3xl font-bold text-purple-600">${total.toFixed(2)}</span>
             </div>
             <button
               onClick={checkout}
               disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 transition-all flex items-center justify-center gap-2"
             >
-              {loading ? 'Processing...' : 'Checkout'}
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CreditCard size={20} />
+                  Proceed to Checkout
+                </>
+              )}
             </button>
           </div>
         )}
@@ -516,42 +593,64 @@ const Leaderboard = () => {
     }
   };
 
+  const getMedalColor = (rank) => {
+    if (rank === 1) return 'from-yellow-400 to-amber-500';
+    if (rank === 2) return 'from-gray-300 to-gray-400';
+    if (rank === 3) return 'from-orange-400 to-orange-500';
+    return 'from-gray-100 to-gray-200';
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Trophy className="text-yellow-500" />
+    <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-3xl font-bold flex items-center gap-3">
+          <div className="p-3 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-xl">
+            <Trophy className="text-white" size={28} />
+          </div>
           Leaderboard
         </h2>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="px-4 py-2 border rounded-lg"
+          className="px-5 py-3 border-2 border-gray-200 rounded-xl font-semibold focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all"
         >
-          <option value="totalPurchases">Top Buyers</option>
-          <option value="checkoutTime">Fastest Checkouts</option>
+          <option value="totalPurchases">💰 Top Buyers</option>
+          <option value="checkoutTime">⚡ Fastest Checkouts</option>
         </select>
       </div>
 
       <div className="space-y-3">
         {leaders.slice(0, 10).map((leader, idx) => (
-          <div key={leader.user.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-              idx === 0 ? 'bg-yellow-400 text-white' :
-              idx === 1 ? 'bg-gray-300 text-white' :
-              idx === 2 ? 'bg-orange-400 text-white' :
-              'bg-gray-200 text-gray-600'
+          <div 
+            key={leader.user.id} 
+            className={`flex items-center gap-5 p-5 rounded-2xl transition-all duration-200 hover:scale-[1.02] ${
+              idx < 3 ? 'bg-gradient-to-r shadow-md' : 'bg-gray-50 hover:bg-gray-100'
+            } ${idx === 0 ? 'from-yellow-50 to-amber-50' : idx === 1 ? 'from-gray-50 to-slate-50' : idx === 2 ? 'from-orange-50 to-red-50' : ''}`}
+          >
+            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${getMedalColor(idx + 1)} flex items-center justify-center font-bold text-xl shadow-lg ${
+              idx < 3 ? 'text-white' : 'text-gray-600'
             }`}>
-              {idx + 1}
+              {idx < 3 ? <Trophy size={24} /> : idx + 1}
             </div>
             <div className="flex-1">
-              <div className="font-semibold">{leader.user.name}</div>
-              <div className="text-sm text-gray-600">
-                {sortBy === 'totalPurchases' 
-                  ? `$${leader.totalPurchases.toFixed(2)} spent • ${leader.totalOrders} orders`
-                  : leader.fastestCheckout ? `${leader.fastestCheckout.toFixed(2)}s fastest checkout` : 'No checkout yet'}
+              <div className="font-bold text-lg text-gray-900 mb-1">{leader.user.name}</div>
+              <div className="text-sm text-gray-600 flex items-center gap-4">
+                {sortBy === 'totalPurchases' ? (
+                  <>
+                    <span className="font-semibold text-purple-600">${leader.totalPurchases.toFixed(2)} spent</span>
+                    <span className="text-gray-400">•</span>
+                    <span>{leader.totalOrders} orders</span>
+                  </>
+                ) : (
+                  leader.fastestCheckout ? 
+                    <span className="font-semibold text-purple-600">⚡ {leader.fastestCheckout.toFixed(2)}s fastest</span> : 
+                    <span className="text-gray-400">No checkout yet</span>
+                )}
               </div>
             </div>
+            {idx < 3 && (
+              <Zap className={`${idx === 0 ? 'text-yellow-500' : idx === 1 ? 'text-gray-400' : 'text-orange-500'}`} size={24} />
+            )}
           </div>
         ))}
       </div>
@@ -579,75 +678,137 @@ const AnalyticsDashboard = () => {
     }
   };
 
-  if (!analytics) return <div className="text-center py-12">Loading analytics...</div>;
+  if (!analytics) return (
+    <div className="text-center py-20">
+      <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto mb-4"></div>
+      <p className="text-gray-600 font-medium">Loading analytics...</p>
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-bold flex items-center gap-2">
-        <BarChart3 className="text-purple-600" />
-        Analytics Dashboard
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-xl p-6">
-          <div className="text-sm opacity-90">Total Sales</div>
-          <div className="text-3xl font-bold mt-2">${analytics.totalSales?.toFixed(2)}</div>
-          <div className="text-sm mt-1">{analytics.totalOrders} orders</div>
+    <div className="space-y-8">
+      <div className="flex items-center gap-4">
+        <div className="p-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-lg">
+          <BarChart3 className="text-white" size={32} />
         </div>
-
-        <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-xl p-6">
-          <div className="text-sm opacity-90">Avg Order Value</div>
-          <div className="text-3xl font-bold mt-2">${analytics.averageOrderValue?.toFixed(2)}</div>
-        </div>
-
-        <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-xl p-6">
-          <div className="text-sm opacity-90">Avg Checkout</div>
-          <div className="text-3xl font-bold mt-2">{analytics.averageCheckoutTime?.toFixed(1)}s</div>
-        </div>
-
-        <div className="bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-xl p-6">
-          <div className="text-sm opacity-90">Peak Hour</div>
-          <div className="text-3xl font-bold mt-2">{analytics.peakHour || 'N/A'}</div>
+        <div>
+          <h2 className="text-4xl font-bold text-gray-900">Analytics Dashboard</h2>
+          <p className="text-gray-600 mt-1">Real-time insights and statistics</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold mb-4">Top Products</h3>
-        <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <TrendingUp size={28} />
+            <div className="p-2 bg-white/20 rounded-lg">
+              <Package size={20} />
+            </div>
+          </div>
+          <div className="text-sm opacity-90 uppercase tracking-wide mb-2">Total Sales</div>
+          <div className="text-4xl font-bold mb-1">${analytics.totalSales?.toFixed(2)}</div>
+          <div className="text-sm opacity-75">{analytics.totalOrders} orders completed</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <TrendingUp size={28} />
+            <div className="p-2 bg-white/20 rounded-lg">
+              <CreditCard size={20} />
+            </div>
+          </div>
+          <div className="text-sm opacity-90 uppercase tracking-wide mb-2">Avg Order Value</div>
+          <div className="text-4xl font-bold mb-1">${analytics.averageOrderValue?.toFixed(2)}</div>
+          <div className="text-sm opacity-75">per transaction</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <TrendingUp size={28} />
+            <div className="p-2 bg-white/20 rounded-lg">
+              <Zap size={20} />
+            </div>
+          </div>
+          <div className="text-sm opacity-90 uppercase tracking-wide mb-2">Avg Checkout</div>
+          <div className="text-4xl font-bold mb-1">{analytics.averageCheckoutTime?.toFixed(1)}s</div>
+          <div className="text-sm opacity-75">average speed</div>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <TrendingUp size={28} />
+            <div className="p-2 bg-white/20 rounded-lg">
+              <Clock size={20} />
+            </div>
+          </div>
+          <div className="text-sm opacity-90 uppercase tracking-wide mb-2">Peak Hour</div>
+          <div className="text-4xl font-bold mb-1">{analytics.peakHour || 'N/A'}</div>
+          <div className="text-sm opacity-75">busiest time</div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+          <Trophy className="text-purple-600" size={28} />
+          Top Products
+        </h3>
+        <div className="space-y-4">
           {(analytics.topProducts || []).map((product, idx) => (
-            <div key={idx} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-600">
+            <div key={idx} className="flex items-center gap-5 p-5 bg-gradient-to-r from-gray-50 to-purple-50 rounded-2xl hover:from-purple-50 hover:to-pink-50 transition-all">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center font-bold text-white text-xl shadow-lg">
                 {idx + 1}
               </div>
               <div className="flex-1">
-                <div className="font-semibold">{product.product.name}</div>
-                <div className="text-sm text-gray-600">
-                  {product.unitsSold} sold • ${product.revenue.toFixed(2)} revenue
+                <div className="font-bold text-lg text-gray-900 mb-1">{product.product.name}</div>
+                <div className="text-sm text-gray-600 flex items-center gap-4">
+                  <span className="font-semibold text-purple-600">{product.unitsSold} sold</span>
+                  <span className="text-gray-400">•</span>
+                  <span>${product.revenue.toFixed(2)} revenue</span>
                 </div>
               </div>
+              <ChevronRight className="text-gray-400" size={24} />
             </div>
           ))}
         </div>
       </div>
 
       {analytics.hourlyBreakdown && analytics.hourlyBreakdown.length > 0 && (
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold mb-4">Hourly Sales</h3>
-          <div className="space-y-2">
-            {analytics.hourlyBreakdown.map(hour => (
-              <div key={hour.hour} className="flex items-center gap-4">
-                <div className="w-16 text-sm font-medium text-gray-600">{hour.hour}</div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded"
-                      style={{ width: `${(hour.sales / Math.max(...analytics.hourlyBreakdown.map(h => h.sales))) * 100}%` }}
-                    ></div>
-                    <span className="text-sm font-semibold">${hour.sales.toFixed(2)}</span>
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+          <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+            <Clock className="text-purple-600" size={28} />
+            Hourly Sales Performance
+          </h3>
+          <div className="space-y-4">
+            {analytics.hourlyBreakdown.map(hour => {
+              const maxSales = Math.max(...analytics.hourlyBreakdown.map(h => h.sales));
+              const percentage = (hour.sales / maxSales) * 100;
+              return (
+                <div key={hour.hour} className="flex items-center gap-4">
+                  <div className="w-20 text-sm font-bold text-gray-700">{hour.hour}</div>
+                  <div className="flex-1">
+                    <div className="relative h-10 bg-gray-100 rounded-xl overflow-hidden">
+                      <div 
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-end pr-3"
+                        style={{ width: `${percentage}%` }}
+                      >
+                        {percentage > 15 && (
+                          <span className="text-white font-bold text-sm">${hour.sales.toFixed(2)}</span>
+                        )}
+                      </div>
+                      {percentage <= 15 && (
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-700 font-bold text-sm">
+                          ${hour.sales.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-16 text-right text-sm font-semibold text-gray-600">
+                    {hour.orders} 
+                    <span className="text-xs text-gray-400 ml-1">orders</span>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -709,56 +870,68 @@ const AIChatbot = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 w-96 h-[500px] bg-white rounded-xl shadow-2xl flex flex-col z-50">
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 rounded-t-xl flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <MessageSquare size={24} />
-          <span className="font-bold">AI Shopping Assistant</span>
+    <div className="fixed bottom-6 right-6 w-96 max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-3rem)] bg-white rounded-2xl shadow-2xl flex flex-col z-50 border border-gray-200 overflow-hidden">
+      <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 text-white p-5 flex items-center justify-between relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full translate-y-1/2 -translate-x-1/2"></div>
         </div>
-        <button onClick={onClose} className="hover:bg-white/20 rounded p-1">
-          <X size={20} />
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="p-2 bg-white/20 rounded-lg">
+            <MessageSquare size={24} />
+          </div>
+          <div>
+            <span className="font-bold text-lg">AI Assistant</span>
+            <div className="text-xs text-purple-100 flex items-center gap-1">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+              Online
+            </div>
+          </div>
+        </div>
+        <button onClick={onClose} className="hover:bg-white/20 rounded-lg p-2 transition-colors relative z-10">
+          <X size={24} />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-gray-50 to-white">
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] p-3 rounded-lg ${
+            <div className={`max-w-[85%] p-4 rounded-2xl shadow-sm ${
               msg.role === 'user' 
-                ? 'bg-purple-600 text-white rounded-br-none' 
-                : 'bg-gray-100 text-gray-800 rounded-bl-none'
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-br-none' 
+                : 'bg-white text-gray-800 rounded-bl-none border border-gray-200'
             }`}>
-              {msg.content}
+              <p className="text-sm leading-relaxed">{msg.content}</p>
             </div>
           </div>
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 p-3 rounded-lg">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="bg-white p-4 rounded-2xl rounded-bl-none border border-gray-200 shadow-sm">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce"></div>
+                <div className="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2.5 h-2.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      <div className="p-4 border-t">
-        <div className="flex gap-2">
+      <div className="p-5 border-t bg-white">
+        <div className="flex gap-3">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="Ask me anything..."
-            className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Type your message..."
+            className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all"
           />
           <button
             onClick={sendMessage}
-            disabled={loading}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+            disabled={loading || !input.trim()}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-5 py-3 rounded-xl hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0 transition-all font-semibold"
           >
             Send
           </button>
@@ -809,8 +982,6 @@ const App = () => {
     }
 
     try {
-      console.log('Adding to cart:', { productId: product._id, quantity: 1 });
-      
       const res = await fetch(`${API_BASE_URL}/cart/add`, {
         method: 'POST',
         headers: {
@@ -821,16 +992,14 @@ const App = () => {
       });
       
       const data = await res.json();
-      console.log('Add to cart response:', data);
       
       if (res.ok) {
         addNotification(`${product.name} added to cart!`, 'success');
-        fetchProducts(); // Refresh products to show updated stock
+        fetchProducts();
       } else {
         addNotification(data.error || 'Failed to add to cart', 'error');
       }
     } catch (err) {
-      console.error('Cart error:', err);
       addNotification('Network error. Please try again.', 'error');
     }
   };
@@ -841,26 +1010,31 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <header className="bg-white shadow-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
+      <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-40 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="md:hidden"
+                className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <Menu size={24} />
+                <Menu size={24} className="text-gray-700" />
               </button>
-              <div className="flex items-center gap-2">
-                <Zap className="text-purple-600" size={32} />
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  FlashDeal
-                </h1>
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl shadow-lg">
+                  <Zap className="text-white" size={28} />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+                    FlashDeal
+                  </h1>
+                  <p className="text-xs text-gray-500 font-medium hidden sm:block">Lightning fast deals</p>
+                </div>
               </div>
             </div>
 
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center">
               <CountdownTimer endTime={saleEndTime} />
             </div>
 
@@ -869,15 +1043,21 @@ const App = () => {
                 <>
                   <button
                     onClick={() => setCartOpen(true)}
-                    className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="relative p-3 hover:bg-gray-100 rounded-xl transition-all hover:scale-105"
                   >
-                    <CartIcon size={24} />
+                    <CartIcon size={24} className="text-gray-700" />
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg">
+                      0
+                    </div>
                   </button>
-                  <div className="hidden md:flex items-center gap-2">
-                    <span className="text-sm font-medium">Hi, {user.name}</span>
+                  <div className="hidden md:flex items-center gap-3 pl-3 border-l">
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-gray-900">{user.name}</div>
+                      <div className="text-xs text-gray-500">Member</div>
+                    </div>
                     <button
                       onClick={logout}
-                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                      className="px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-lg transition-colors font-semibold"
                     >
                       Logout
                     </button>
@@ -887,14 +1067,14 @@ const App = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => openAuth('login')}
-                    className="flex items-center gap-1 px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2.5 text-purple-600 hover:bg-purple-50 rounded-xl transition-all font-semibold"
                   >
                     <LogIn size={18} />
                     <span className="hidden sm:inline">Login</span>
                   </button>
                   <button
                     onClick={() => openAuth('register')}
-                    className="flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all font-semibold"
                   >
                     <UserPlus size={18} />
                     <span className="hidden sm:inline">Register</span>
@@ -904,7 +1084,7 @@ const App = () => {
             </div>
           </div>
 
-          <div className="md:hidden mt-3 flex justify-center">
+          <div className="md:hidden mt-4 flex justify-center">
             <CountdownTimer endTime={saleEndTime} />
           </div>
 
@@ -913,35 +1093,52 @@ const App = () => {
               <nav className="space-y-2">
                 <button
                   onClick={() => { setCurrentPage('products'); setMenuOpen(false); }}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    currentPage === 'products' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all font-semibold flex items-center gap-3 ${
+                    currentPage === 'products' 
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' 
+                      : 'hover:bg-gray-100 text-gray-700'
                   }`}
                 >
+                  <Package size={20} />
                   Products
                 </button>
                 <button
                   onClick={() => { setCurrentPage('leaderboard'); setMenuOpen(false); }}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    currentPage === 'leaderboard' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all font-semibold flex items-center gap-3 ${
+                    currentPage === 'leaderboard' 
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' 
+                      : 'hover:bg-gray-100 text-gray-700'
                   }`}
                 >
+                  <Trophy size={20} />
                   Leaderboard
                 </button>
                 <button
                   onClick={() => { setCurrentPage('analytics'); setMenuOpen(false); }}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    currentPage === 'analytics' ? 'bg-purple-100 text-purple-700' : 'hover:bg-gray-100'
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all font-semibold flex items-center gap-3 ${
+                    currentPage === 'analytics' 
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' 
+                      : 'hover:bg-gray-100 text-gray-700'
                   }`}
                 >
+                  <BarChart3 size={20} />
                   Analytics
                 </button>
                 {user && (
-                  <button
-                    onClick={() => { logout(); setMenuOpen(false); }}
-                    className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg"
-                  >
-                    Logout
-                  </button>
+                  <>
+                    <div className="border-t my-2"></div>
+                    <div className="px-4 py-2">
+                      <div className="text-sm font-bold text-gray-900">{user.name}</div>
+                      <div className="text-xs text-gray-500">Member</div>
+                    </div>
+                    <button
+                      onClick={() => { logout(); setMenuOpen(false); }}
+                      className="w-full text-left px-4 py-3 text-rose-600 hover:bg-rose-50 rounded-xl font-semibold flex items-center gap-3"
+                    >
+                      <LogIn size={20} />
+                      Logout
+                    </button>
+                  </>
                 )}
               </nav>
             </div>
@@ -949,60 +1146,66 @@ const App = () => {
         </div>
       </header>
 
-      <nav className="hidden md:block bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-1">
+      <nav className="hidden md:block bg-white/50 backdrop-blur-sm border-b border-gray-100 sticky top-[73px] z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-2">
             <button
               onClick={() => setCurrentPage('products')}
-              className={`px-6 py-3 font-medium transition-colors ${
+              className={`px-6 py-4 font-semibold transition-all flex items-center gap-2 ${
                 currentPage === 'products'
-                  ? 'text-purple-600 border-b-2 border-purple-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-purple-600 border-b-4 border-purple-600 bg-purple-50/50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              <Package className="inline mr-2" size={18} />
+              <Package size={20} />
               Products
             </button>
             <button
               onClick={() => setCurrentPage('leaderboard')}
-              className={`px-6 py-3 font-medium transition-colors ${
+              className={`px-6 py-4 font-semibold transition-all flex items-center gap-2 ${
                 currentPage === 'leaderboard'
-                  ? 'text-purple-600 border-b-2 border-purple-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-purple-600 border-b-4 border-purple-600 bg-purple-50/50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              <Trophy className="inline mr-2" size={18} />
+              <Trophy size={20} />
               Leaderboard
             </button>
             <button
               onClick={() => setCurrentPage('analytics')}
-              className={`px-6 py-3 font-medium transition-colors ${
+              className={`px-6 py-4 font-semibold transition-all flex items-center gap-2 ${
                 currentPage === 'analytics'
-                  ? 'text-purple-600 border-b-2 border-purple-600'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'text-purple-600 border-b-4 border-purple-600 bg-purple-50/50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
-              <BarChart3 className="inline mr-2" size={18} />
+              <BarChart3 size={20} />
               Analytics
             </button>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {currentPage === 'products' && (
           <div>
-            <div className="mb-8 text-center">
-              <h2 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Flash Sale Live Now! 🔥
+            <div className="mb-12 text-center">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-100 to-amber-100 px-6 py-2 rounded-full mb-4">
+                <Zap className="text-orange-600" size={20} />
+                <span className="font-bold text-orange-700 uppercase tracking-wide text-sm">Live Now</span>
+              </div>
+              <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
+                Flash Sale Event 🔥
               </h2>
-              <p className="text-gray-600">Grab amazing deals before they're gone!</p>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+                Grab amazing deals before they're gone! Limited stock available on selected items.
+              </p>
             </div>
 
             {products.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Loading products...</p>
+              <div className="text-center py-20">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto mb-6"></div>
+                <p className="text-gray-600 text-lg font-medium">Loading products...</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -1025,9 +1228,11 @@ const App = () => {
       {!chatOpen && (
         <button
           onClick={() => setChatOpen(true)}
-          className="fixed bottom-4 right-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-shadow z-40"
+          className="fixed bottom-6 right-6 p-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-2xl hover:shadow-purple-500/50 hover:scale-110 transition-all z-40 group"
         >
-          <MessageSquare size={24} />
+          <MessageSquare size={28} />
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full animate-ping"></div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full"></div>
         </button>
       )}
 
@@ -1039,58 +1244,62 @@ const App = () => {
       <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
       <AIChatbot isOpen={chatOpen} onClose={() => setChatOpen(false)} />
 
-      <footer className="bg-white border-t mt-12">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-                <Zap className="text-purple-600" />
-                FlashDeal
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Your destination for the best flash sales and unbeatable deals.
+      <footer className="bg-white border-t mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+            <div className="md:col-span-2">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2.5 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl">
+                  <Zap className="text-white" size={24} />
+                </div>
+                <h3 className="font-bold text-2xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  FlashDeal
+                </h3>
+              </div>
+              <p className="text-gray-600 leading-relaxed mb-4">
+                Your destination for the best flash sales and unbeatable deals. Shop smart, save big!
               </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-3">Quick Links</h4>
-              <div className="space-y-2 text-sm text-gray-600">
-                <div>About Us</div>
-                <div>Contact</div>
-                <div>Terms of Service</div>
-                <div>Privacy Policy</div>
+              <div className="flex gap-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-purple-100 hover:text-purple-600 transition-colors cursor-pointer">
+                  <Users size={20} />
+                </div>
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-purple-100 hover:text-purple-600 transition-colors cursor-pointer">
+                  <Bell size={20} />
+                </div>
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-purple-100 hover:text-purple-600 transition-colors cursor-pointer">
+                  <MessageSquare size={20} />
+                </div>
               </div>
             </div>
+            
             <div>
-              <h4 className="font-semibold mb-3">Customer Support</h4>
-              <div className="space-y-2 text-sm text-gray-600">
-                <div>FAQ</div>
-                <div>Shipping Info</div>
-                <div>Returns</div>
-                <div>Track Order</div>
+              <h4 className="font-bold text-gray-900 mb-4 text-lg">Quick Links</h4>
+              <div className="space-y-3 text-gray-600">
+                <div className="hover:text-purple-600 cursor-pointer transition-colors">About Us</div>
+                <div className="hover:text-purple-600 cursor-pointer transition-colors">Contact</div>
+                <div className="hover:text-purple-600 cursor-pointer transition-colors">Careers</div>
+                <div className="hover:text-purple-600 cursor-pointer transition-colors">Blog</div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-bold text-gray-900 mb-4 text-lg">Support</h4>
+              <div className="space-y-3 text-gray-600">
+                <div className="hover:text-purple-600 cursor-pointer transition-colors">Help Center</div>
+                <div className="hover:text-purple-600 cursor-pointer transition-colors">Shipping Info</div>
+                <div className="hover:text-purple-600 cursor-pointer transition-colors">Returns</div>
+                <div className="hover:text-purple-600 cursor-pointer transition-colors">Track Order</div>
               </div>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t text-center text-sm text-gray-600">
-            © 2024 FlashDeal. All rights reserved.
+          
+          <div className="mt-12 pt-8 border-t text-center">
+            <p className="text-gray-500 text-sm">
+              © 2024 FlashDeal. All rights reserved. Made with ❤️ for amazing shoppers.
+            </p>
           </div>
         </div>
       </footer>
-
-      <style>{`
-        @keyframes slide-in {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 };
