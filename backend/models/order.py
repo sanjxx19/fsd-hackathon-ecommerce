@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from bson import ObjectId
 import time
 from config.db import get_database
@@ -28,18 +28,33 @@ class Order:
         if isinstance(user_id, str):
             user_id = ObjectId(user_id)
 
-        # Calculate checkout time
-        checkout_time = (datetime.utcnow() - checkout_start_time).total_seconds()
+        print(f"DEBUG Order: Creating order for user {user_id}")
+        print(f"DEBUG Order: Checkout start time: {checkout_start_time}")
+        print(f"DEBUG Order: Checkout start time type: {type(checkout_start_time)}")
+
+        # Make checkout_start_time timezone-naive if it's timezone-aware
+        if checkout_start_time.tzinfo is not None:
+            checkout_start_time = checkout_start_time.replace(tzinfo=None)
+            print(f"DEBUG Order: Converted to timezone-naive: {checkout_start_time}")
+
+        # Calculate checkout time using timezone-naive datetime
+        current_time = datetime.utcnow()
+        checkout_time = (current_time - checkout_start_time).total_seconds()
+        print(f"DEBUG Order: Current time: {current_time}")
+        print(f"DEBUG Order: Checkout time: {checkout_time}s")
 
         # Prepare order items
         order_items = []
         subtotal = 0
 
+        print(f"DEBUG Order: Processing {len(cart_items)} items")
         for item in cart_items:
             product = Product.find_by_id(item['product'])
             if not product:
+                print(f"ERROR Order: Product not found: {item['product']}")
                 raise ValueError(f"Product not found: {item['product']}")
 
+            print(f"DEBUG Order: Adding item - {product['name']} x{item['quantity']}")
             order_items.append({
                 'product': item['product'],
                 'name': product['name'],
@@ -51,6 +66,8 @@ class Order:
         # Calculate tax (10%)
         tax = round(subtotal * 0.1, 2)
         total = subtotal + tax
+
+        print(f"DEBUG Order: Subtotal: ${subtotal}, Tax: ${tax}, Total: ${total}")
 
         # Create order
         order = {
@@ -67,16 +84,27 @@ class Order:
             'createdAt': datetime.utcnow()
         }
 
+        print(f"DEBUG Order: Inserting order into database - {order['orderId']}")
         result = collection.insert_one(order)
         order['_id'] = result.inserted_id
+        print(f"DEBUG Order: Order created with ID: {order['_id']}")
 
         # Update user purchases
+        print(f"DEBUG Order: Updating user purchases")
         User.update_purchases(user_id, total, checkout_time)
 
         # Update product stock
+        print(f"DEBUG Order: Updating product stocks")
         for item in order_items:
-            Product.update_stock(item['product'], item['quantity'], 'decrease')
+            try:
+                new_stock = Product.update_stock(item['product'], item['quantity'], 'decrease')
+                print(f"DEBUG Order: Updated stock for {item['name']} - New stock: {new_stock}")
+            except ValueError as e:
+                print(f"ERROR Order: Failed to update stock for {item['name']}: {e}")
+                # Continue anyway since order is already created
+                # In production, you'd want to handle this with transactions
 
+        print(f"DEBUG Order: Order creation complete")
         return order
 
     @classmethod
