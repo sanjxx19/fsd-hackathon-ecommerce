@@ -34,35 +34,43 @@ const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setToken(data.token);
-      setUser(data.user);
-      localStorage.setItem('token', data.token);
-      return { success: true };
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setToken(data.token);
+        setUser(data.user);
+        localStorage.setItem('token', data.token);
+        return { success: true };
+      }
+      return { success: false, message: data.error || 'Login failed' };
+    } catch (err) {
+      return { success: false, message: 'Network error. Please try again.' };
     }
-    return { success: false, message: data.error || 'Login failed' };
   };
 
   const register = async (name, email, password) => {
-    const res = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setToken(data.token);
-      setUser(data.user);
-      localStorage.setItem('token', data.token);
-      return { success: true };
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setToken(data.token);
+        setUser(data.user);
+        localStorage.setItem('token', data.token);
+        return { success: true };
+      }
+      return { success: false, message: data.error || 'Registration failed' };
+    } catch (err) {
+      return { success: false, message: 'Network error. Please try again.' };
     }
-    return { success: false, message: data.error || 'Registration failed' };
   };
 
   const logout = () => {
@@ -281,7 +289,7 @@ const ProductCard = ({ product, onAddToCart }) => {
           {product.image}
         </div>
         {product.stock < 10 && product.stock > 0 && (
-          <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+          <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">
             Only {product.stock} left!
           </div>
         )}
@@ -299,9 +307,12 @@ const ProductCard = ({ product, onAddToCart }) => {
             <div className="text-2xl font-bold text-purple-600">${product.price}</div>
             <div className="text-sm text-gray-500 line-through">${product.originalPrice}</div>
           </div>
-          <div className="text-sm font-semibold text-green-600">
+          <div className="text-sm font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">
             {product.discountPercent}% OFF
           </div>
+        </div>
+        <div className="mb-3 text-sm text-gray-600">
+          <span className="font-semibold">Stock:</span> {product.stock} units
         </div>
         <button
           onClick={handleAddToCart}
@@ -354,6 +365,7 @@ const ShoppingCart = ({ isOpen, onClose }) => {
       });
       if (res.ok) {
         fetchCart();
+        addNotification('Cart updated', 'success');
       }
     } catch (err) {
       console.error('Failed to update quantity:', err);
@@ -392,7 +404,7 @@ const ShoppingCart = ({ isOpen, onClose }) => {
       });
       const data = await res.json();
       if (res.ok) {
-        addNotification('Order placed successfully!', 'success');
+        addNotification(`Order placed! Checkout time: ${data.order.checkoutTime}s`, 'success');
         setCart(null);
         onClose();
       } else {
@@ -523,7 +535,7 @@ const Leaderboard = () => {
 
       <div className="space-y-3">
         {leaders.slice(0, 10).map((leader, idx) => (
-          <div key={leader.user.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+          <div key={leader.user.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
               idx === 0 ? 'bg-yellow-400 text-white' :
               idx === 1 ? 'bg-gray-300 text-white' :
@@ -536,8 +548,8 @@ const Leaderboard = () => {
               <div className="font-semibold">{leader.user.name}</div>
               <div className="text-sm text-gray-600">
                 {sortBy === 'totalPurchases' 
-                  ? `$${leader.totalPurchases.toFixed(2)} spent`
-                  : leader.fastestCheckout ? `${leader.fastestCheckout.toFixed(2)}s checkout` : 'No checkout yet'}
+                  ? `$${leader.totalPurchases.toFixed(2)} spent • ${leader.totalOrders} orders`
+                  : leader.fastestCheckout ? `${leader.fastestCheckout.toFixed(2)}s fastest checkout` : 'No checkout yet'}
               </div>
             </div>
           </div>
@@ -602,18 +614,43 @@ const AnalyticsDashboard = () => {
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-xl font-bold mb-4">Top Products</h3>
         <div className="space-y-3">
-          {(analytics.topProducts || []).map(product => (
-            <div key={product.product.name} className="flex items-center gap-4">
+          {(analytics.topProducts || []).map((product, idx) => (
+            <div key={idx} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-600">
+                {idx + 1}
+              </div>
               <div className="flex-1">
                 <div className="font-semibold">{product.product.name}</div>
                 <div className="text-sm text-gray-600">
-                  {product.unitsSold} sold | ${product.revenue.toFixed(2)} revenue
+                  {product.unitsSold} sold • ${product.revenue.toFixed(2)} revenue
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {analytics.hourlyBreakdown && analytics.hourlyBreakdown.length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-xl font-bold mb-4">Hourly Sales</h3>
+          <div className="space-y-2">
+            {analytics.hourlyBreakdown.map(hour => (
+              <div key={hour.hour} className="flex items-center gap-4">
+                <div className="w-16 text-sm font-medium text-gray-600">{hour.hour}</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded"
+                      style={{ width: `${(hour.sales / Math.max(...analytics.hourlyBreakdown.map(h => h.sales))) * 100}%` }}
+                    ></div>
+                    <span className="text-sm font-semibold">${hour.sales.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -635,19 +672,35 @@ const AIChatbot = ({ isOpen, onClose }) => {
     setLoading(true);
 
     setTimeout(() => {
-      const responses = [
-        "Our flash sale ends in a few hours! Don't miss out on amazing deals up to 70% off.",
-        "You can track your order in the 'My Orders' section. Would you like me to check a specific order?",
-        "We have great deals on electronics, fashion, and home goods. What are you interested in?",
-        "All products come with a 30-day return policy. Orders ship within 24 hours!",
-        "Top selling items today include smartphones, laptops, and smart watches. Check them out!"
-      ];
+      const lowerInput = input.toLowerCase();
+      let response = '';
+
+      if (lowerInput.includes('sale') || lowerInput.includes('discount')) {
+        response = "Our flash sale is live now with discounts up to 70% off! Hurry, limited stock available. Check out our Electronics and Accessories categories for the best deals!";
+      } else if (lowerInput.includes('shipping') || lowerInput.includes('delivery')) {
+        response = "We offer free shipping on all orders! Standard delivery takes 3-5 business days. Express shipping is available for faster delivery.";
+      } else if (lowerInput.includes('return') || lowerInput.includes('refund')) {
+        response = "We have a 30-day return policy. If you're not satisfied, you can return your items for a full refund. No questions asked!";
+      } else if (lowerInput.includes('payment') || lowerInput.includes('card')) {
+        response = "We accept all major credit cards, debit cards, and digital wallets. All transactions are secure and encrypted.";
+      } else if (lowerInput.includes('track') || lowerInput.includes('order')) {
+        response = "You can track your orders in the 'My Orders' section after logging in. You'll receive updates via email too!";
+      } else if (lowerInput.includes('stock') || lowerInput.includes('available')) {
+        response = "Stock is limited during flash sales! Items showing 'Only X left' are selling fast. Add them to your cart quickly to secure your purchase.";
+      } else if (lowerInput.includes('checkout') || lowerInput.includes('fast')) {
+        response = "Pro tip: Save your payment details for faster checkout! The fastest shoppers get featured on our leaderboard. Current record is under 5 seconds!";
+      } else {
+        const responses = [
+          "Our flash sale ends soon! Don't miss out on amazing deals up to 70% off.",
+          "Check out our top-rated products - customers love our Premium Headphones and Smart Watch Pro!",
+          "Need help finding something specific? I can recommend products based on your interests.",
+          "All our products come with warranty and free shipping. Shop with confidence!",
+          "Want to know a secret? New flash sales drop every week. Follow us to stay updated!"
+        ];
+        response = responses[Math.floor(Math.random() * responses.length)];
+      }
       
-      const aiMessage = {
-        role: 'assistant',
-        content: responses[Math.floor(Math.random() * responses.length)]
-      };
-      
+      const aiMessage = { role: 'assistant', content: response };
       setMessages(prev => [...prev, aiMessage]);
       setLoading(false);
     }, 1000);
@@ -660,7 +713,7 @@ const AIChatbot = ({ isOpen, onClose }) => {
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 rounded-t-xl flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MessageSquare size={24} />
-          <span className="font-bold">AI Assistant</span>
+          <span className="font-bold">AI Shopping Assistant</span>
         </div>
         <button onClick={onClose} className="hover:bg-white/20 rounded p-1">
           <X size={20} />
@@ -704,7 +757,8 @@ const AIChatbot = ({ isOpen, onClose }) => {
           />
           <button
             onClick={sendMessage}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+            disabled={loading}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50"
           >
             Send
           </button>
@@ -722,7 +776,7 @@ const App = () => {
   const [cartOpen, setCartOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [products, setProducts] = useState([]);
-  const [saleEndTime] = useState(new Date(Date.now() + 3 * 60 * 60 * 1000));
+  const [saleEndTime] = useState(new Date(Date.now() + 8 * 60 * 60 * 1000));
   const [menuOpen, setMenuOpen] = useState(false);
 
   const { user, logout, token } = useAuth();
@@ -755,6 +809,8 @@ const App = () => {
     }
 
     try {
+      console.log('Adding to cart:', { productId: product._id, quantity: 1 });
+      
       const res = await fetch(`${API_BASE_URL}/cart/add`, {
         method: 'POST',
         headers: {
@@ -764,14 +820,18 @@ const App = () => {
         body: JSON.stringify({ productId: product._id, quantity: 1 })
       });
       
+      const data = await res.json();
+      console.log('Add to cart response:', data);
+      
       if (res.ok) {
         addNotification(`${product.name} added to cart!`, 'success');
+        fetchProducts(); // Refresh products to show updated stock
       } else {
-        const data = await res.json();
         addNotification(data.error || 'Failed to add to cart', 'error');
       }
     } catch (err) {
-      addNotification('Failed to add to cart', 'error');
+      console.error('Cart error:', err);
+      addNotification('Network error. Please try again.', 'error');
     }
   };
 
