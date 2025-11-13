@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { ShoppingCart, LogIn, UserPlus, TrendingUp, Clock, Package, CreditCard, Users, BarChart3, Bell, MessageSquare, X, ChevronRight, Trophy, Zap, CheckCircle, AlertCircle, Menu } from 'lucide-react';
+import { ShoppingCart as CartIcon, LogIn, UserPlus, TrendingUp, Clock, Package, CreditCard, Users, BarChart3, Bell, MessageSquare, X, ChevronRight, Trophy, Zap, CheckCircle, AlertCircle, Menu } from 'lucide-react';
 
 // API Base URL - Update this to your backend URL
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -46,7 +46,7 @@ const AuthProvider = ({ children }) => {
       localStorage.setItem('token', data.token);
       return { success: true };
     }
-    return { success: false, message: data.message };
+    return { success: false, message: data.error || 'Login failed' };
   };
 
   const register = async (name, email, password) => {
@@ -62,7 +62,7 @@ const AuthProvider = ({ children }) => {
       localStorage.setItem('token', data.token);
       return { success: true };
     }
-    return { success: false, message: data.message };
+    return { success: false, message: data.error || 'Registration failed' };
   };
 
   const logout = () => {
@@ -277,11 +277,9 @@ const ProductCard = ({ product, onAddToCart }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all">
       <div className="relative">
-        <img 
-          src={product.image || `https://source.unsplash.com/400x300/?${product.name}`}
-          alt={product.name}
-          className="w-full h-48 object-cover"
-        />
+        <div className="w-full h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center text-6xl">
+          {product.image}
+        </div>
         {product.stock < 10 && product.stock > 0 && (
           <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
             Only {product.stock} left!
@@ -298,11 +296,11 @@ const ProductCard = ({ product, onAddToCart }) => {
         <p className="text-gray-600 text-sm mb-3">{product.description}</p>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <div className="text-2xl font-bold text-purple-600">${product.salePrice}</div>
+            <div className="text-2xl font-bold text-purple-600">${product.price}</div>
             <div className="text-sm text-gray-500 line-through">${product.originalPrice}</div>
           </div>
           <div className="text-sm font-semibold text-green-600">
-            {Math.round((1 - product.salePrice / product.originalPrice) * 100)}% OFF
+            {product.discountPercent}% OFF
           </div>
         </div>
         <button
@@ -319,7 +317,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
 // Shopping Cart Component
 const ShoppingCart = ({ isOpen, onClose }) => {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
   const { token } = useAuth();
   const { addNotification } = useNotification();
@@ -337,7 +335,7 @@ const ShoppingCart = ({ isOpen, onClose }) => {
       });
       const data = await res.json();
       if (res.ok) {
-        setCart(data.items || []);
+        setCart(data.cart);
       }
     } catch (err) {
       console.error('Failed to fetch cart:', err);
@@ -380,20 +378,25 @@ const ShoppingCart = ({ isOpen, onClose }) => {
   const checkout = async () => {
     setLoading(true);
     try {
+      const checkoutStartTime = new Date().toISOString();
       const res = await fetch(`${API_BASE_URL}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
-        }
+        },
+        body: JSON.stringify({
+          checkoutStartTime,
+          paymentMethod: 'card'
+        })
       });
       const data = await res.json();
       if (res.ok) {
-        addNotification('Order placed successfully! Processing payment...', 'success');
-        setCart([]);
+        addNotification('Order placed successfully!', 'success');
+        setCart(null);
         onClose();
       } else {
-        addNotification(data.message || 'Checkout failed', 'error');
+        addNotification(data.error || 'Checkout failed', 'error');
       }
     } catch (err) {
       addNotification('Checkout failed', 'error');
@@ -401,7 +404,8 @@ const ShoppingCart = ({ isOpen, onClose }) => {
     setLoading(false);
   };
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const cartItems = cart?.items || [];
+  const total = cart?.total || 0;
 
   if (!isOpen) return null;
 
@@ -416,39 +420,37 @@ const ShoppingCart = ({ isOpen, onClose }) => {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          {cart.length === 0 ? (
+          {cartItems.length === 0 ? (
             <div className="text-center text-gray-500 mt-12">
-              <ShoppingCart size={64} className="mx-auto mb-4 opacity-30" />
+              <CartIcon size={64} className="mx-auto mb-4 opacity-30" />
               <p>Your cart is empty</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {cart.map(item => (
-                <div key={item.productId} className="flex gap-4 border-b pb-4">
-                  <img 
-                    src={item.image || `https://source.unsplash.com/100x100/?product`}
-                    alt={item.name}
-                    className="w-20 h-20 object-cover rounded"
-                  />
+              {cartItems.map(item => (
+                <div key={item.product._id} className="flex gap-4 border-b pb-4">
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded flex items-center justify-center text-3xl">
+                    {item.product.image}
+                  </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold">{item.name}</h3>
+                    <h3 className="font-semibold">{item.product.name}</h3>
                     <p className="text-purple-600 font-bold">${item.price}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <button
-                        onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                        className="px-2 py-1 bg-gray-200 rounded"
+                        onClick={() => updateQuantity(item.product._id, item.quantity - 1)}
+                        className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
                       >
                         -
                       </button>
                       <span className="px-3">{item.quantity}</span>
                       <button
-                        onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                        className="px-2 py-1 bg-gray-200 rounded"
+                        onClick={() => updateQuantity(item.product._id, item.quantity + 1)}
+                        className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
                       >
                         +
                       </button>
                       <button
-                        onClick={() => removeItem(item.productId)}
+                        onClick={() => removeItem(item.product._id)}
                         className="ml-auto text-red-500 hover:text-red-700"
                       >
                         Remove
@@ -461,7 +463,7 @@ const ShoppingCart = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {cart.length > 0 && (
+        {cartItems.length > 0 && (
           <div className="p-6 border-t">
             <div className="flex justify-between items-center mb-4">
               <span className="text-xl font-bold">Total:</span>
@@ -521,7 +523,7 @@ const Leaderboard = () => {
 
       <div className="space-y-3">
         {leaders.slice(0, 10).map((leader, idx) => (
-          <div key={leader.userId} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+          <div key={leader.user.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
               idx === 0 ? 'bg-yellow-400 text-white' :
               idx === 1 ? 'bg-gray-300 text-white' :
@@ -531,11 +533,11 @@ const Leaderboard = () => {
               {idx + 1}
             </div>
             <div className="flex-1">
-              <div className="font-semibold">{leader.name}</div>
+              <div className="font-semibold">{leader.user.name}</div>
               <div className="text-sm text-gray-600">
                 {sortBy === 'totalPurchases' 
-                  ? `${leader.totalPurchases} purchases - $${leader.totalSpent}`
-                  : `Avg checkout: ${leader.averageCheckoutTime}s`}
+                  ? `$${leader.totalPurchases.toFixed(2)} spent`
+                  : leader.fastestCheckout ? `${leader.fastestCheckout.toFixed(2)}s checkout` : 'No checkout yet'}
               </div>
             </div>
           </div>
@@ -548,8 +550,6 @@ const Leaderboard = () => {
 // Analytics Dashboard Component
 const AnalyticsDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [traffic, setTraffic] = useState(null);
 
   useEffect(() => {
     fetchAnalytics();
@@ -557,19 +557,11 @@ const AnalyticsDashboard = () => {
 
   const fetchAnalytics = async () => {
     try {
-      const [salesRes, productsRes, trafficRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/analytics/sales`),
-        fetch(`${API_BASE_URL}/analytics/products`),
-        fetch(`${API_BASE_URL}/analytics/traffic`)
-      ]);
-
-      const salesData = await salesRes.json();
-      const productsData = await productsRes.json();
-      const trafficData = await trafficRes.json();
-
-      setAnalytics(salesData);
-      setProducts(productsData.products || []);
-      setTraffic(trafficData);
+      const res = await fetch(`${API_BASE_URL}/analytics/sales`);
+      const data = await res.json();
+      if (res.ok) {
+        setAnalytics(data.analytics);
+      }
     } catch (err) {
       console.error('Failed to fetch analytics:', err);
     }
@@ -587,7 +579,7 @@ const AnalyticsDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-gradient-to-br from-purple-500 to-purple-700 text-white rounded-xl p-6">
           <div className="text-sm opacity-90">Total Sales</div>
-          <div className="text-3xl font-bold mt-2">${analytics.totalRevenue?.toFixed(2)}</div>
+          <div className="text-3xl font-bold mt-2">${analytics.totalSales?.toFixed(2)}</div>
           <div className="text-sm mt-1">{analytics.totalOrders} orders</div>
         </div>
 
@@ -597,32 +589,25 @@ const AnalyticsDashboard = () => {
         </div>
 
         <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-xl p-6">
-          <div className="text-sm opacity-90">Fastest Checkout</div>
-          <div className="text-3xl font-bold mt-2">{analytics.fastestCheckout?.toFixed(1)}s</div>
+          <div className="text-sm opacity-90">Avg Checkout</div>
+          <div className="text-3xl font-bold mt-2">{analytics.averageCheckoutTime?.toFixed(1)}s</div>
         </div>
 
         <div className="bg-gradient-to-br from-orange-500 to-orange-700 text-white rounded-xl p-6">
-          <div className="text-sm opacity-90">Peak Traffic</div>
-          <div className="text-3xl font-bold mt-2">
-            {traffic?.peakHour ? `${traffic.peakHour}:00` : 'N/A'}
-          </div>
+          <div className="text-sm opacity-90">Peak Hour</div>
+          <div className="text-3xl font-bold mt-2">{analytics.peakHour || 'N/A'}</div>
         </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold mb-4">Product Performance</h3>
+        <h3 className="text-xl font-bold mb-4">Top Products</h3>
         <div className="space-y-3">
-          {products.slice(0, 5).map(product => (
-            <div key={product.productId} className="flex items-center gap-4">
+          {(analytics.topProducts || []).map(product => (
+            <div key={product.product.name} className="flex items-center gap-4">
               <div className="flex-1">
-                <div className="font-semibold">{product.name}</div>
+                <div className="font-semibold">{product.product.name}</div>
                 <div className="text-sm text-gray-600">
-                  {product.totalSold} sold | ${product.revenue} revenue
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm font-semibold text-purple-600">
-                  Avg: {product.averageSelloutSpeed}min
+                  {product.unitsSold} sold | ${product.revenue.toFixed(2)} revenue
                 </div>
               </div>
             </div>
@@ -649,7 +634,6 @@ const AIChatbot = ({ isOpen, onClose }) => {
     setInput('');
     setLoading(true);
 
-    // Simulate AI response
     setTimeout(() => {
       const responses = [
         "Our flash sale ends in a few hours! Don't miss out on amazing deals up to 70% off.",
@@ -738,7 +722,7 @@ const App = () => {
   const [cartOpen, setCartOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [products, setProducts] = useState([]);
-  const [saleEndTime] = useState(new Date(Date.now() + 3 * 60 * 60 * 1000)); // 3 hours from now
+  const [saleEndTime] = useState(new Date(Date.now() + 3 * 60 * 60 * 1000));
   const [menuOpen, setMenuOpen] = useState(false);
 
   const { user, logout, token } = useAuth();
@@ -746,7 +730,7 @@ const App = () => {
 
   useEffect(() => {
     fetchProducts();
-    const interval = setInterval(fetchProducts, 10000); // Refresh every 10s
+    const interval = setInterval(fetchProducts, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -784,7 +768,7 @@ const App = () => {
         addNotification(`${product.name} added to cart!`, 'success');
       } else {
         const data = await res.json();
-        addNotification(data.message || 'Failed to add to cart', 'error');
+        addNotification(data.error || 'Failed to add to cart', 'error');
       }
     } catch (err) {
       addNotification('Failed to add to cart', 'error');
@@ -798,7 +782,6 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      {/* Header */}
       <header className="bg-white shadow-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -828,7 +811,7 @@ const App = () => {
                     onClick={() => setCartOpen(true)}
                     className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
                   >
-                    <ShoppingCart size={24} />
+                    <CartIcon size={24} />
                   </button>
                   <div className="hidden md:flex items-center gap-2">
                     <span className="text-sm font-medium">Hi, {user.name}</span>
@@ -861,12 +844,10 @@ const App = () => {
             </div>
           </div>
 
-          {/* Mobile timer */}
           <div className="md:hidden mt-3 flex justify-center">
             <CountdownTimer endTime={saleEndTime} />
           </div>
 
-          {/* Mobile menu */}
           {menuOpen && (
             <div className="md:hidden mt-4 pb-2 border-t pt-4">
               <nav className="space-y-2">
@@ -908,7 +889,6 @@ const App = () => {
         </div>
       </header>
 
-      {/* Navigation */}
       <nav className="hidden md:block bg-white border-b">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1">
@@ -949,7 +929,6 @@ const App = () => {
         </div>
       </nav>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         {currentPage === 'products' && (
           <div>
@@ -983,7 +962,6 @@ const App = () => {
         {currentPage === 'analytics' && <AnalyticsDashboard />}
       </main>
 
-      {/* Floating Chat Button */}
       {!chatOpen && (
         <button
           onClick={() => setChatOpen(true)}
@@ -993,7 +971,6 @@ const App = () => {
         </button>
       )}
 
-      {/* Modals and Components */}
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
@@ -1002,7 +979,6 @@ const App = () => {
       <ShoppingCart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
       <AIChatbot isOpen={chatOpen} onClose={() => setChatOpen(false)} />
 
-      {/* Footer */}
       <footer className="bg-white border-t mt-12">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -1040,7 +1016,7 @@ const App = () => {
         </div>
       </footer>
 
-      <style jsx>{`
+      <style>{`
         @keyframes slide-in {
           from {
             transform: translateX(100%);
@@ -1059,7 +1035,6 @@ const App = () => {
   );
 };
 
-// Root Component with Providers
 export default function FlashSaleApp() {
   return (
     <AuthProvider>
