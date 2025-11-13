@@ -51,30 +51,50 @@ def get_socketio():
 def emit_stock_update(product_id, stock):
     """Emit stock update to all connected clients"""
     if socketio:
-        socketio.emit('stockUpdate', {
-            'productId': str(product_id),
-            'stock': stock
-        }, broadcast=True)
+        try:
+            socketio.emit('stockUpdate', {
+                'productId': str(product_id),
+                'stock': stock
+            }, namespace='/')
+            print(f"📢 Stock update emitted for product {product_id}: {stock}")
+        except Exception as e:
+            print(f"⚠️  Failed to emit stock update: {e}")
 
 def emit_order_success(user_id, order_data):
     """Emit order success to specific user"""
     if socketio:
-        socketio.emit('orderSuccess', order_data, room=f"user_{user_id}")
+        try:
+            socketio.emit('orderSuccess', order_data, room=f"user_{user_id}", namespace='/')
+            print(f"📢 Order success emitted to user {user_id}")
+        except Exception as e:
+            print(f"⚠️  Failed to emit order success: {e}")
 
 def emit_leaderboard_update():
     """Emit leaderboard update to all clients"""
     if socketio:
-        socketio.emit('leaderboardUpdate', {}, broadcast=True)
+        try:
+            socketio.emit('leaderboardUpdate', {}, namespace='/')
+            print(f"📢 Leaderboard update emitted")
+        except Exception as e:
+            print(f"⚠️  Failed to emit leaderboard update: {e}")
 
 def emit_product_sold_out(product_id, product_name):
     """Emit product sold out notification"""
     if socketio:
-        socketio.emit('productSoldOut', {
-            'productId': str(product_id),
-            'productName': product_name
-        }, broadcast=True)
+        try:
+            socketio.emit('productSoldOut', {
+                'productId': str(product_id),
+                'productName': product_name
+            }, namespace='/')
+            print(f"📢 Product sold out emitted: {product_name}")
+        except Exception as e:
+            print(f"⚠️  Failed to emit product sold out: {e}")
 
 def emit_sale_ended():
     """Emit sale ended notification"""
     if socketio:
-        socketio.emit('saleEnded', {}, broadcast=True)
+        try:
+            socketio.emit('saleEnded', {}, namespace='/')
+            print(f"📢 Sale ended emitted")
+        except Exception as e:
+            print(f"⚠️  Failed to emit sale ended: {e}")
